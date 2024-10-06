@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import os
 import subprocess
 import pyperclip
@@ -12,6 +12,12 @@ class CodeFormatter:
         self.master.geometry("500x400")
 
         self.processed_files = set()
+        self.file_types = [
+            ("C# files", "*.cs"),
+            ("Python files", "*.py"),
+            ("Text files", "*.txt"),
+            ("All files", "*.*"),
+        ]
 
         self.create_widgets()
 
@@ -55,14 +61,19 @@ class CodeFormatter:
         )
         self.copy_button.pack(pady=5)
 
+        # Settings menu
+        self.menu = tk.Menu(self.master)
+        self.master.config(menu=self.menu)
+        self.settings_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Settings", menu=self.settings_menu)
+        self.settings_menu.add_command(
+            label="Add File Format", command=self.add_file_format
+        )
+
     def select_files(self):
         file_paths = filedialog.askopenfilenames(
-            filetypes=[
-                ("C# files", "*.cs"),
-                ("Python files", "*.py"),
-                ("Text files", "*.txt"),
-                ("All files", "*.*"),
-            ]
+            filetypes=self.file_types,
+            initialfile="*.*",  # Ensures "All files" is the default selection
         )
         for file_path in file_paths:
             if file_path not in self.processed_files:
@@ -106,6 +117,23 @@ class CodeFormatter:
         if formatted_text:
             pyperclip.copy(formatted_text)
             messagebox.showinfo("Success", "Formatted text copied to clipboard!")
+
+    def add_file_format(self):
+        # Prompt user for new file format
+        description = simpledialog.askstring(
+            "File Format", "Enter file type description (e.g., 'Markdown files'):"
+        )
+        extension = simpledialog.askstring(
+            "File Extension", "Enter file extension (e.g., '*.md'):"
+        )
+
+        if description and extension:
+            self.file_types.insert(
+                -1, (description, extension)
+            )  # Add before "All files"
+            messagebox.showinfo(
+                "Success", f"Added file format: {description} ({extension})"
+            )
 
 
 def main():
